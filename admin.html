@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Biryani Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: #fff;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .order-box {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #ff9800;
+            border: none;
+            padding: 8px 12px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #000;
+            font-weight: bold;
+        }
+
+        #map {
+            width: 100%;
+            height: 250px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📦 Admin Panel – Orders</h2>
+
+<div id="orderList"></div>
+
+<!-- Firebase -->
+<script type="module">
+    // IMPORTS
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // FIREBASE CONFIG 
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4Pbx6wP-IcD102U6NkF0ZnFg9jdxLEgw",
+        authDomain: "joshbiryani-9a4f2.firebaseapp.com",
+        databaseURL: "https://joshbiryani-9a4f2-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "joshbiryani-9a4f2",
+        storageBucket: "joshbiryani-9a4f2.firebasestorage.app",
+        messagingSenderId: "21728166304",
+        appId: "1:21728166304:web:c5e391b417ed4fc76364c5",
+        measurementId: "G-ZH9336LWRH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // FETCH ORDERS
+    const orderRef = ref(db, "orders");
+
+    onValue(orderRef, (snapshot) => {
+        const orderList = document.getElementById("orderList");
+        orderList.innerHTML = ""; // reset
+
+        snapshot.forEach(order => {
+            let data = order.val();
+
+            let box = document.createElement("div");
+            box.className = "order-box";
+
+            box.innerHTML = `
+                <h3>${data.item}</h3>
+                <p><b>Name:</b> ${data.name}</p>
+                <p><b>Phone:</b> ${data.phone}</p>
+                <p><b>Address:</b> ${data.address}</p>
+                <p><b>Placed At:</b> ${data.time}</p>
+                <div id="map-${order.key}" style="width:100%;height:200px;border-radius:8px;margin-top:10px;"></div>
+                <button onclick="completeOrder('${order.key}')">✔ Complete Order</button>
+            `;
+
+            orderList.appendChild(box);
+
+            // Load Map
+            loadMap(`map-${order.key}`, data.latitude, data.longitude);
+        });
+    });
+
+    // COMPLETE ORDER
+    window.completeOrder = function(orderId) {
+        remove(ref(db, "orders/" + orderId));
+        alert("Order Completed ✔");
+    };
+
+    // GOOGLE MAP LOADER
+    window.loadMap = function(divId, lat, lng) {
+        let map = new google.maps.Map(document.getElementById(divId), {
+            center: { lat: Number(lat), lng: Number(lng) },
+            zoom: 16
+        });
+
+        new google.maps.Marker({
+            position: { lat: Number(lat), lng: Number(lng) },
+            map: map
+        });
+    };
+</script>
+
+<!-- GOOGLE MAPS -->
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY">
+</script>
+
+</body>
+</html>

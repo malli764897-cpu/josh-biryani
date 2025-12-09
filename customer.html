@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Biryani Order – Customer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        input, textarea, select {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        button {
+            background: #ff9800;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #map {
+            width: 100%;
+            height: 260px;
+            background: #333;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>🍗 Order Your Biryani</h2>
+
+    <label>Your Name</label>
+    <input id="name" type="text" placeholder="Enter your name">
+
+    <label>Phone Number</label>
+    <input id="phone" type="number" placeholder="Enter your phone number">
+
+    <label>Choose Biryani</label>
+    <select id="item">
+        <option value="Chicken Dum Biryani - 160">Chicken Dum Biryani – ₹160</option>
+        <option value="Chicken Fry Biryani - 160">Chicken Fry Biryani – ₹160</option>
+        <option value="Mini Fry Biryani - 130">Mini Fry Biryani – ₹130</option>
+        <option value="Couple Pack - 260">Couple Pack – ₹260</option>
+        <option value="Family Pack - 500">Family Pack – ₹500</option>
+    </select>
+
+    <label>Full Address (Landmark, Door No, Street)</label>
+    <textarea id="address" placeholder="Write your full delivery address"></textarea>
+
+    <h3>Select Location on Map</h3>
+    <div id="map"></div>
+
+    <input type="hidden" id="lat">
+    <input type="hidden" id="lng">
+
+    <button onclick="placeOrder()">Place Order</button>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+    // IMPORTS
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, set } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4Pbx6wP-IcD102U6NkF0ZnFg9jdxLEgw",
+        authDomain: "joshbiryani-9a4f2.firebaseapp.com",
+        databaseURL: "https://joshbiryani-9a4f2-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "joshbiryani-9a4f2",
+        storageBucket: "joshbiryani-9a4f2.firebasestorage.app",
+        messagingSenderId: "21728166304",
+        appId: "1:21728166304:web:c5e391b417ed4fc76364c5",
+        measurementId: "G-ZH9336LWRH"
+    };
+
+    // INIT
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ORDER FUNCTION
+    window.placeOrder = function () {
+        let name = document.getElementById("name").value;
+        let phone = document.getElementById("phone").value;
+        let item = document.getElementById("item").value;
+        let address = document.getElementById("address").value;
+        let lat = document.getElementById("lat").value;
+        let lng = document.getElementById("lng").value;
+
+        if (!name || !phone || !address || !lat) {
+            alert("❗ Please fill all fields and select map location.");
+            return;
+        }
+
+        let orderRef = push(ref(db, "orders"));
+
+        set(orderRef, {
+            name,
+            phone,
+            item,
+            address,
+            latitude: lat,
+            longitude: lng,
+            status: "pending",
+            time: new Date().toLocaleString()
+        });
+
+        alert("✅ Order Placed Successfully!");
+    };
+</script>
+
+<!-- GOOGLE MAPS API -->
+<script>
+    let map;
+    let marker;
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 17.385, lng: 78.486 },
+            zoom: 15
+        });
+
+        map.addListener("click", (e) => {
+            let pos = e.latLng;
+
+            if (!marker) {
+                marker = new google.maps.Marker({
+                    position: pos,
+                    map: map
+                });
+            } else {
+                marker.setPosition(pos);
+            }
+
+            document.getElementById("lat").value = pos.lat();
+            document.getElementById("lng").value = pos.lng();
+        });
+    }
+</script>
+
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+</script>
+
+</body>
+</html>
